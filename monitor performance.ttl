@@ -1,0 +1,84 @@
+sendln "*=42"
+wait "Ok"
+
+sendln "GRP 0"
+wait "Ok"
+
+sendln "FBK 1"
+wait "Ok"
+
+sendln "TGR"
+
+sendln "CCL"
+
+; power levels
+intdim pwr 11
+pwr[0] = 1
+pwr[1] = 10
+pwr[2] = 20
+pwr[3] = 30
+pwr[4] = 40
+pwr[5] = 50
+pwr[6] = 60
+pwr[7] = 70
+pwr[8] = 80
+pwr[9] = 90
+pwr[10] = 100
+
+
+; for all channels i = 1, 2, ..., 45
+; for all levels j = 0, 1, ..., 10
+
+i = 1
+while i <= 45
+	j = 0
+    while j <= 10
+		
+		;sprintf2 cmd 'SCP 0 0 %d %d' i pwr[j]
+		;sendln cmd
+		;wait #13#10'Ok' #13#10'?21 - channel is not active'
+		;mpause 1000
+		
+		call scp
+		if result=2 call nextchannel
+		
+		call mong
+		call monr
+		
+		j = j + 1
+	endwhile
+	i = i + 1
+endwhile
+
+sendln "SCP 0 0"
+wait "Ok"
+
+sendln "SSD0"
+
+:scp
+sprintf2 cmd 'SCP 0 0 %d %d' i pwr[j]
+sendln cmd
+wait #13#10'Ok' #13#10'?21 - channel is not active'
+mpause 200
+flushrecv
+
+return
+
+:nextchannel
+i = i + 1
+j = -1
+return
+
+:mong
+sendln 'MONG'
+waitregex '[^\r\n,]+'
+mpause 200
+flushrecv
+return
+
+:monr
+sendln 'MONR'
+waitregex '[^\r\n,]+,[^\r\n,]+,[^\r\n,]+'
+mpause 200
+flushrecv
+return
